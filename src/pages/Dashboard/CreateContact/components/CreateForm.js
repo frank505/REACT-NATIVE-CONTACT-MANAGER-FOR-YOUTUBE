@@ -51,7 +51,7 @@ export default function CreateForm() {
 
             <Button full iconLeft  style={styles.submitBtn}>
             <Ionicons name="md-person-add" color="#fff" size={20} />
-            <Text>Register</Text>
+            <Text>Create Contact</Text>
           </Button>
          
 
