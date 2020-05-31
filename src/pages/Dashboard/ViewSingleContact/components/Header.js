@@ -1,6 +1,6 @@
 import React from 'react'
 import {Header as ViewSingleContactHeader, Left, Body, Right, Title,Icon } from 'native-base'
-import Options from '../../../layout/Dashboard/Options'
+import Options from '../../../../layout/Dashboard/Options'
 import {useNavigation} from '@react-navigation/native';
 import { Platform } from 'react-native';
 

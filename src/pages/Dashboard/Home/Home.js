@@ -5,7 +5,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CreateContact from '../CreateContact'
 import ViewContact from '../ViewContact';
 import ContactSearch from '../ContactSearch';
-import ViewSingleContact from '../../ViewSingleContact/ViewSingleContact';
+import ViewSingleContact from '../ViewSingleContact';
+import EditContact from '../EditContact';
 
 const Tab = createBottomTabNavigator();
 
@@ -63,6 +64,7 @@ export default function Home() {
       <Stack.Screen name="Tabs"     component={tabNavigation} />
       <Stack.Screen name="SearchContactModal" component={ContactSearch} />
       <Stack.Screen name="ViewSingleContact" component={ViewSingleContact} />
+      <Stack.Screen name="EditContact" component={EditContact} />
       
     </Stack.Navigator>
     )

@@ -9,7 +9,7 @@ export default function ContactDetails() {
         <Content>
          
         <View style={{marginTop:20}}>
-        <Image source={require('../../../assets/images/default-avatar.png')} 
+        <Image source={require('../../../../assets/images/default-avatar.png')} 
         style={styles.imgStyle}/>
         <Text  style={styles.name} >ifeanyi Ubah Chimaobi</Text>
         </View> 
