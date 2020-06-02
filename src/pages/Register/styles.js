@@ -10,6 +10,13 @@ import {StyleSheet} from 'react-native';
     submitBtn:{
       marginTop:'10%',
       marginBottom:'1%'
+    },
+    changeTextFieldColor:{
+      // borderBottomColor:'red',
+      marginTop:'2%'
+    },
+    labelError:{
+      color:'red',fontSize:14
     }
    
   });
