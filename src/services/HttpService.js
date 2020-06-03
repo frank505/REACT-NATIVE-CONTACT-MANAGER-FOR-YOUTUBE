@@ -1,11 +1,16 @@
+import AsyncStorage from '@react-native-community/async-storage';
+
 class HttpService
 {
-    url = "http://127.0.0.1:8000";
+    //ios simulator
+    url = "http://127.0.0.1:8000/api"; 
+    //andriod emulator
+    // url = "http://10.0.2.2:8000/api";
 
 
     postData = async(item ,addedUrl,postType,tokenId="") =>
     {
-        const token = await localStorage.getItem(tokenId);
+        const token = await AsyncStorage.getItem(tokenId);
 
         const requestOptions = this.postRequestOptions(token,item,postType);
 
@@ -16,7 +21,7 @@ class HttpService
 
     getData = async(addedUrl,tokenId="") =>
     {
-        const token = await localStorage.getItem(tokenId);
+        const token = await AsyncStorage.getItem(tokenId);
         const requestOptions = this.getRequestOptions(token);
 
         return fetch(this.url+"/"+addedUrl, requestOptions).then(
@@ -26,7 +31,7 @@ class HttpService
 
     deleteData = async(addedUrl,tokenId="") =>
     {
-        const token = await localStorage.getItem(tokenId);
+        const token = await AsyncStorage.getItem(tokenId);
         const requestOptions = this.deleteRequestOptions(token);
 
         return fetch(this.url+"/"+addedUrl, requestOptions).then(

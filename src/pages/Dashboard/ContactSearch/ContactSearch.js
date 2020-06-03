@@ -10,7 +10,7 @@ export default function ContactSearch() {
  
 
     return (
-        <Root>
+    
       <Container>
        <SearchBar />
        
@@ -19,6 +19,6 @@ export default function ContactSearch() {
        
 
       </Container>
-      </Root>
+   
     )
 }

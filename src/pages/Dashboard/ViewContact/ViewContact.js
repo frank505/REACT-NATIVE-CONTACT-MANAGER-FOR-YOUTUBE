@@ -9,11 +9,11 @@ export default function ViewContact() {
     
 
     return (
-        <Root>
+    
         <Container>
          <Header />
          <ItemList/>
         </Container>
-        </Root>
+       
     )
 }

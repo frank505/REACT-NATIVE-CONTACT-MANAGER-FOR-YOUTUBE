@@ -1,26 +1,32 @@
 import React,{useState,useEffect} from 'react'
-import { Content, Form, Item, Input, Label,Button,Text, View } from 'native-base';
+import { Content, Form, Item, Input, Label,Button,Text, View, Toast } from 'native-base';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import {styles} from '../styles'
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useFocusEffect} from '@react-navigation/native';
 import {Formik} from 'formik'
 import { disableSubmitButton } from '../../../helpers/hooksFormInput';
-import { cleanUpData,instantiateAbort } from '../../../helpers/componentHelperFunc';
-
+import { cleanUpData,instantiateAbort,setBottomColor,ResponseToast,LoadingToast } from '../../../helpers/componentHelperFunc';
+import {useDispatch,useSelector} from 'react-redux';
+import { RegisterAction, clearRegisterAuthState } from '../../../store/actions/AuthAction';
 
 
 export default function RegisterForm() {
   
     const navigation = useNavigation();
   
+    const dispatch = useDispatch();
+
+    const registerResponse = useSelector(state=>state.authReducer.registerState);
+
     const [fields, setFields] = useState({
      firstname:"",
      lastname:"",
      email:"",
      password:""
     });
-
+   
+    const EmailCheckRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  
     const abortEffect = instantiateAbort();
 
     const [disable, setDisable] = useState(true)
@@ -30,10 +36,24 @@ export default function RegisterForm() {
     navigation.navigate('Login');
     }
 
+    
+
     const disableButtonIfFieldsAreEmpty = (dataObject)=>
     {
       disableSubmitButton(dataObject,setDisable);
     }
+
+ /**
+  * called once we loose focus of this screen react navigation 5 new hooks
+  */
+    useFocusEffect(
+      React.useCallback(() => {
+      
+        return () => dispatch(clearRegisterAuthState())
+      }, [])
+     
+    );
+  
    
    /*
    * ensure button remains disable until all form fields are filled
@@ -41,7 +61,7 @@ export default function RegisterForm() {
     useEffect(() => 
      {
        
-       disableButtonIfFieldsAreEmpty(fields)
+        disableButtonIfFieldsAreEmpty(fields)
      
        return function cleanup()
        {
@@ -50,6 +70,8 @@ export default function RegisterForm() {
  
       }, [fields]);
 
+
+
    
     const validation = () =>
     {
@@ -57,11 +79,10 @@ export default function RegisterForm() {
         errors.firstname = fields.firstname==""? 'Firstname is Required':'';
         errors.lastname = fields.lastname==""? 'Lastname is Required':'';
         errors.email =  !fields.email? 'Email Field is Required': '';
-        errors.email = !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(fields.email)?'Invalid email address':'';
+        errors.email = !EmailCheckRegex.test(fields.email)?'Invalid email address':'';
         errors.password = fields.password==""? 'Password Field is Required': '';
     
-       
- 
+      
         return errors;
     }
 
@@ -69,8 +90,68 @@ export default function RegisterForm() {
 
     const handleSubmitAfterFormikValidation = () =>
     {
-        console.log(fields);
+        dispatch(RegisterAction(fields));
     }
+
+   /**
+    * disable button when we are submitting our form during the time interval we wait 
+    * for response to come to us from our react application
+    */
+    useEffect(() => 
+    {
+      disableButtonOnSubmit();
+
+      return function cleanup()
+      {
+        cleanUpData(abortEffect);
+      }
+
+    }
+    , [registerResponse])
+
+       
+   const disableButtonOnSubmit = () =>
+    {
+      if(registerResponse=="loading")
+      {
+        setDisable(true);
+      }else if(registerResponse!="" && registerResponse!="loading")
+      {
+         setDisable(false);
+      }
+    }
+
+
+    useEffect(() => {
+      if(registerResponse!="" && registerResponse=="loading")
+      {
+        LoadingToast("top","please wait..","success");
+      }
+      else if(registerResponse!="" || registerResponse!=null || registerResponse!="loading")
+      {
+        if(registerResponse.success === true)
+        {
+          ResponseToast("top","Close","success",registerResponse.message,6000);
+         
+        }else if(registerResponse.success === false)
+        {
+            if(typeof registerResponse.message === "string")
+            {
+              ResponseToast("top","Close","success",registerResponse.message,6000);
+            }else if(typeof registerResponse.message === "object")
+            {
+              Object.keys(registerResponse.message).map((keys,index)=>{
+          
+                ResponseToast("top","Close","danger",registerResponse.message[keys][0],6000);
+              })
+            }
+        }
+      }
+
+      return () => {
+        cleanUpData(abortEffect)
+      }
+    }, [registerResponse])
 
     return (
     
@@ -91,10 +172,15 @@ export default function RegisterForm() {
 
             <Item floatingLabel   
             style={styles.changeTextFieldColor}
+            ref={component => _firstName = component}
             >
               <Label>Firstname</Label>
               <Input
-              onChangeText={(firstname)=>setFields({...fields,firstname:firstname})}
+              onChangeText={(firstname)=>{
+                setFields({...fields,firstname:firstname}),
+                setBottomColor(_firstName,firstname,null)
+              }}
+              onTouchStart={()=>setBottomColor(_firstName,fields.firstname,null)}
               onBlur={handleBlur("firstname")}
               onChange={handleChange("firstname")}
               value={fields.firstname}
@@ -105,10 +191,16 @@ export default function RegisterForm() {
           
 
             <Item floatingLabel
+            style={null}
+            ref={component => _lastName = component}
             >
               <Label>Lastname</Label>
               <Input 
-              onChangeText={(lastname)=>setFields({...fields,lastname:lastname})}
+             onChangeText={(lastname)=>{
+              setFields({...fields,lastname:lastname}),
+              setBottomColor(_lastName,lastname,null)
+            }}
+            onTouchStart={()=>setBottomColor(_lastName,fields.lastname,null)}
               onBlur={handleBlur("lastname")}
               onChange={handleChange("lastname")} 
               value={fields.lastname}/>
@@ -116,10 +208,17 @@ export default function RegisterForm() {
             <Label style={styles.labelError}>
                 { errors.lastname && touched.lastname && errors.lastname}</Label>
 
-            <Item floatingLabel >
+            <Item floatingLabel 
+            style={null}
+            ref={component=>_Email = component}
+            >
               <Label>Email</Label>
               <Input 
-              onChangeText={(email)=>setFields({...fields,email:email})}
+              onChangeText={(email)=>{
+                setFields({...fields,email:email}),
+                setBottomColor(_Email,email,"email")
+              }}
+              onTouchStart={()=>setBottomColor(_Email,fields.email,"email")}
               onBlur={handleBlur("email")}
               onChange={handleChange("email")}
               value={fields.email}
@@ -130,10 +229,16 @@ export default function RegisterForm() {
             </Label>
 
             <Item floatingLabel
+            style={null}
+            ref={component=>_Password = component}
             >
             <Label>Password</Label>
               <Input
-              onChangeText={(password)=>setFields({...fields,password:password})}
+            onChangeText={(password)=>{
+              setFields({...fields,password:password}),
+              setBottomColor(_Password,password,null)
+            }}
+            onTouchStart={()=>setBottomColor(_Password,fields.password,null)}
               onBlur={handleBlur("password")}
               onChange={handleChange("password")}
               value={fields.password} 
@@ -149,8 +254,8 @@ export default function RegisterForm() {
             onPress={handleSubmitAfterFormikValidation}
             disabled={disable}
             >
-            <Ionicons name="ios-contact" color="#fff" size={20} />
-            <Text>Register</Text>
+              <Ionicons name="ios-contact" color="#fff" size={20} />
+            <Text>{registerResponse =="loading" ? "please wait...":"Register"}</Text>
           </Button>
 
           <Button full iconLeft transparent 
