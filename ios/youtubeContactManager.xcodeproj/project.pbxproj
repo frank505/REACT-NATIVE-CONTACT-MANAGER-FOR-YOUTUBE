@@ -148,7 +148,6 @@
 				5F752B0BE0D3CA0FAB15C4BD /* Pods-youtubeContactManager-youtubeContactManagerTests.debug.xcconfig */,
 				C4FFD0B8E3F847BC0C213C47 /* Pods-youtubeContactManager-youtubeContactManagerTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
