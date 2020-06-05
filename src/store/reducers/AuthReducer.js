@@ -6,12 +6,15 @@ import {
     CLEAR_LOGIN_STATE,
     LOGIN_LOADING,
     LOGIN_SUCCESS,
-    LOGIN_ERROR
+    LOGIN_ERROR,
+    TOKEN_EXPIRED,
+    TOKEN_EXPIRED_RESET
  } from "../actiontypes/Auth"
 
 const initState = {
     loginState:"",
-    registerState:""
+    registerState:"",
+    tokenExpired:false
 }
 
 
@@ -33,7 +36,7 @@ const AuthReducer = (state=initState, action) =>
         case REGISTER_SUCCESS:
             return{
             ...state,
-            registerState:action.res
+            registerState:action.res,
         }
 
         case REGISTER_ERROR:
@@ -57,12 +60,24 @@ const AuthReducer = (state=initState, action) =>
                 ...state,
                 loginState:action.res
             }
-    
+            
             case LOGIN_ERROR:
                 return {
                ...state,
                loginState: action.res
                 }
+
+                case TOKEN_EXPIRED:
+                return{
+                    ...state,
+                    tokenExpired:true
+                }
+                case TOKEN_EXPIRED_RESET:
+                return{
+                    ...state,
+                    tokenExpired:false
+                }
+
 
         default:
             return state

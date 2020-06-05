@@ -122,7 +122,7 @@ export default function LoginForm() {
     {
       if(loginResponse.success === true && loginResponse.token!="")
       {
-        AsyncStorage.setItem('user','Bearer '+loginResponse.token);
+        AsyncStorage.setItem('user',loginResponse.token); 
 
        navigation.navigate("Dashboard");
        

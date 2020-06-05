@@ -6,7 +6,8 @@ import {
     LOGIN_LOADING,
     LOGIN_SUCCESS,
     LOGIN_ERROR,
-    CLEAR_LOGIN_STATE
+    CLEAR_LOGIN_STATE,
+    TOKEN_EXPIRED_RESET
     } from "../actiontypes/Auth";
 import { RegisterService, LoginService } from "../../services/AuthService";
 
@@ -82,3 +83,13 @@ export const clearLoginAuthState = ()=>
     }
 }
 
+
+
+export const resetTokenExpirationValue= () =>
+{
+    return (dispatch)=>{
+
+        dispatch({type:TOKEN_EXPIRED_RESET});
+    }
+
+}

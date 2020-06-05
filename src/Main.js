@@ -10,22 +10,7 @@ import { instantiateAbort, cleanUpData } from './helpers/componentHelperFunc';
 import LoadingScreen from './pages/LoadingScreen/LoadingScreen';
 
 
-function checkTokenExist()
-{
-  let response;
-  AsyncStorage.getItem('user').then( async (res)=>{
-    const value = await res;
-    console.log(value);
- 
-    if(value==null)
-    {
-      response = false;
-    }else{
-     response = true;
-    }
-  });
-  return response;
-}
+
 
 
 const Stack = createStackNavigator();

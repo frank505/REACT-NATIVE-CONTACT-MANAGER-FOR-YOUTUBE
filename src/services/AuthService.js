@@ -32,5 +32,5 @@ return new Promise(function(resolve)
  {
   AsyncStorage.removeItem('user');
   resolve(true);
-  })
+  });
 }

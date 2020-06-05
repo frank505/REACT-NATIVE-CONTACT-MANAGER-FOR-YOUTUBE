@@ -11,7 +11,8 @@ import { cleanUpData,instantiateAbort,setBottomColor,ResponseToast,LoadingToast 
  from '../../../../helpers/componentHelperFunc';
 import {useDispatch,useSelector} from 'react-redux';
 import IntlPhoneInput from 'react-native-intl-phone-input';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { CreateContactAction, clearCreateContactState } from '../../../../store/actions/ContactsAction';
+
 
 
 
@@ -26,6 +27,10 @@ export default function CreateForm() {
   
   
    const createResponse = useSelector(state=>state.contactReducer.createContactState);
+
+   const dispatch = useDispatch();
+
+
   
    const ImageOptions = {
     title: 'Select Image',
@@ -40,7 +45,7 @@ export default function CreateForm() {
     firstname:"",
     lastname:"",
     email:"",
-    mobile_no:"",
+    phonenumber:"",
    });
    
 
@@ -93,6 +98,7 @@ export default function CreateForm() {
     }
   }
 
+  
 
    /*
    * ensure button remains disable until all form fields are filled
@@ -108,6 +114,27 @@ export default function CreateForm() {
      }
 
     }, [fields,MobileErr]);
+
+
+    
+
+
+        /**
+  * called once we loose focus of this screen react navigation 5 new hooks
+  */ 
+    useFocusEffect(
+      React.useCallback(() => {
+      
+        return () => {
+          dispatch(clearCreateContactState())
+        }
+      }, [])
+     
+    );
+
+
+
+
 
  const openFIleImage = () =>{
 
@@ -141,7 +168,7 @@ export default function CreateForm() {
  {
   console.log(dialCode, unmaskedPhoneNumber, phoneNumber, isVerified);
 
-     setFields({...fields,mobile_no:phoneNumber});
+     setFields({...fields,phonenumber:dialCode+unmaskedPhoneNumber});
     if(phoneNumber=="")
    {
     setMobileErr("Phone Number Field is Required");
@@ -162,16 +189,22 @@ export default function CreateForm() {
 };
 
 
-  const displayPhoneErrorOnceViewIsClicked = () =>
+  const displayPhoneInputErrorOnceViewIsClicked = () =>
   {
-   if(fields.mobile_no=="")
+   if(fields.phonenumber=="")
    {
     _Phone.setNativeProps({ style: { borderBottomColor: 'red' } });
    }
    
   }
 
-
+ const displayPhoneErrorTextMessagOnceViewIsClicked = ()=>
+ {
+   if(fields.phonenumber=="")
+   {
+     setMobileErr("Phone Number Field Is Required");
+   }
+ }
 
 
  const openCamera = ()=>{
@@ -241,6 +274,45 @@ const disableButtonOnSubmit = () =>
  }
 
 
+ const submitData = () =>
+ {
+   /**add a new profile_image property */
+   fields["profile_image"] = ProfileImage;
+   console.log(fields);
+  dispatch(CreateContactAction(fields));
+ }
+
+
+ useEffect(() => {
+  if(createResponse!="" && createResponse=="loading")
+  {
+    LoadingToast("top","please wait..","success");
+  }
+  else if(createResponse!="" || createResponse!=null || createResponse!="loading")
+  {
+    if(createResponse.success === true)
+    {
+      ResponseToast("top","Close","success",createResponse.message,6000);
+     
+    }else if(createResponse.success === false)
+    {
+        if(typeof createResponse.message === "string")
+        {
+          ResponseToast("top","Close","danger",createResponse.message,6000);
+        }else if(typeof createResponse.message === "object")
+        {
+          Object.keys(createResponse.message).map((keys,index)=>{
+      
+            ResponseToast("top","Close","danger",createResponse.message[keys][0],6000);
+          })
+        }
+    }
+  }
+
+  return () => {
+    cleanUpData(abortEffect)
+  }
+}, [createResponse])
 
 
     return (
@@ -275,7 +347,8 @@ const disableButtonOnSubmit = () =>
             style={styles.defaultImgStyle}/>
           }
 
-      <Label   onPress={LoadActionSheetForFile} style={styles.labelStyle}>
+      <Label   onPress={LoadActionSheetForFile} 
+      style={styles.labelStyle}>
       <Icon name="image"  style={styles.iconRepImage}></Icon>
      <Text style={styles.textRepImage}> (Optional) Click here to add Image</Text>   
                 </Label>
@@ -344,7 +417,9 @@ const disableButtonOnSubmit = () =>
             </Label>
 
 
-            <View onTouchStart={displayPhoneErrorOnceViewIsClicked}>
+            <View onTouchStart={displayPhoneInputErrorOnceViewIsClicked}
+            onTouchEnd={displayPhoneErrorTextMessagOnceViewIsClicked}
+            >
            <Item style={null}
           
             ref={component=>_Phone = component} >
@@ -353,7 +428,7 @@ const disableButtonOnSubmit = () =>
         placeholder="Phone Number"
         onChangeText={onChangeNumber} 
         phoneInputStyle={{fontSize:17,color:'black'}}
-        value={fields.mobile_no}
+        value={fields.phonenumber}
         defaultCountry="NG" 
         />
       </Item>
@@ -368,11 +443,13 @@ const disableButtonOnSubmit = () =>
 
 
 
-            <Button full iconLeft  style={styles.submitBtn}
+            <Button full iconLeft onPress={submitData}  style={styles.submitBtn}
             disabled={disable}
             >
             <Ionicons name="md-person-add" color="#fff" size={20} />
-            <Text>Create Contact</Text>
+            <Text>{createResponse=="loading" 
+            ? "please wait..."
+            :"Add New Contact"}</Text>
           </Button>
           
 
