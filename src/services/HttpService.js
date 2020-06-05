@@ -1,12 +1,21 @@
 import AsyncStorage from '@react-native-community/async-storage';
+import { Platform } from 'react-native';
+
 
 class HttpService
 {
-    //ios simulator
-    url = "http://127.0.0.1:8000/api"; 
-    //andriod emulator
-    // url = "http://10.0.2.2:8000/api";
-
+       
+    setUrl = () =>
+    {
+       let url = "";
+        if(Platform.OS=="ios")
+        {
+            url = "http://127.0.0.1:8000/api";
+        }else{
+            url = "http://10.0.2.2:8000/api";
+        }
+        return url;
+    }
 
     postData = async(item ,addedUrl,postType,tokenId="") =>
     {
@@ -14,7 +23,7 @@ class HttpService
 
         const requestOptions = this.postRequestOptions(token,item,postType);
 
-        return fetch(this.url+"/"+addedUrl, requestOptions).then(
+        return fetch(this.setUrl()+"/"+addedUrl, requestOptions).then(
             response=>response.json());
     }
 
@@ -24,7 +33,7 @@ class HttpService
         const token = await AsyncStorage.getItem(tokenId);
         const requestOptions = this.getRequestOptions(token);
 
-        return fetch(this.url+"/"+addedUrl, requestOptions).then(
+        return fetch(this.setUrl()+"/"+addedUrl, requestOptions).then(
             response=>response.json());
     }
 
@@ -34,7 +43,7 @@ class HttpService
         const token = await AsyncStorage.getItem(tokenId);
         const requestOptions = this.deleteRequestOptions(token);
 
-        return fetch(this.url+"/"+addedUrl, requestOptions).then(
+        return fetch(this.setUrl()+"/"+addedUrl, requestOptions).then(
             response=>response.json());
     }
 

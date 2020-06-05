@@ -3,6 +3,9 @@ import OptionsMenu from "react-native-options-menu";
 import {useNavigation} from '@react-navigation/native'
 import { Icon } from 'native-base';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+import { LogoutService } from '../../services/AuthService';
+
 
 
 export default function Options() {
@@ -15,10 +18,13 @@ export default function Options() {
   }
 
   const Logout = () =>
-  {
+  { 
+   LogoutService().then(()=>{
     navigation.navigate('Login');
+   });
+    
   }
-
+  
     return (  
         <OptionsMenu  
         customButton={(

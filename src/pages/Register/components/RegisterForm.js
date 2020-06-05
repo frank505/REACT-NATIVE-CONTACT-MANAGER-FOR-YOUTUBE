@@ -137,7 +137,7 @@ export default function RegisterForm() {
         {
             if(typeof registerResponse.message === "string")
             {
-              ResponseToast("top","Close","success",registerResponse.message,6000);
+              ResponseToast("top","Close","danger",registerResponse.message,6000);
             }else if(typeof registerResponse.message === "object")
             {
               Object.keys(registerResponse.message).map((keys,index)=>{
@@ -171,7 +171,7 @@ export default function RegisterForm() {
                <View>
 
             <Item floatingLabel   
-            style={styles.changeTextFieldColor}
+            style={styles.marginTopStyle}
             ref={component => _firstName = component}
             >
               <Label>Firstname</Label>
@@ -223,6 +223,7 @@ export default function RegisterForm() {
               onChange={handleChange("email")}
               value={fields.email}
               />
+
             </Item>
             <Label style={styles.labelError}>
               {errors.email && touched.email && errors.email}

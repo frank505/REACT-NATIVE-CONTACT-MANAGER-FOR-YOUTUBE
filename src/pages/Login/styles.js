@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native'; 
+  import {StyleSheet} from 'react-native'; 
 
 
  export const styles = StyleSheet.create({
@@ -10,6 +10,12 @@ import {StyleSheet} from 'react-native';
     submitBtn:{
       marginTop:'10%',
       marginBottom:'1%'
+    },
+    marginTopStyle:{
+      marginTop:'2%'
+    },
+    labelError:{
+      color:'red',fontSize:14
     }
    
   });

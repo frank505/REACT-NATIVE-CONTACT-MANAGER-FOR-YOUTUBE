@@ -1,7 +1,15 @@
-import { REGISTER_LOADING, REGISTER_SUCCESS, REGISTER_ERROR, 
-    CLEAR_REGISTER_STATE } from "../actiontypes/Auth";
-import { RegisterService } from "../../services/AuthService";
-import AsyncStorage from '@react-native-community/async-storage'
+import {
+     REGISTER_LOADING, 
+    REGISTER_SUCCESS,
+     REGISTER_ERROR, 
+    CLEAR_REGISTER_STATE, 
+    LOGIN_LOADING,
+    LOGIN_SUCCESS,
+    LOGIN_ERROR,
+    CLEAR_LOGIN_STATE
+    } from "../actiontypes/Auth";
+import { RegisterService, LoginService } from "../../services/AuthService";
+
 
 
 
@@ -36,6 +44,41 @@ export const clearRegisterAuthState = ()=>
     return (dispatch)=>
     {
         dispatch({type:CLEAR_REGISTER_STATE});
+    }
+}
+
+export const LoginAction = (credentials) =>
+{
+    return (dispatch)=>{
+  
+        dispatch({type:LOGIN_LOADING});
+
+     LoginService(credentials).then((res)=>{
+
+                console.log(res);
+
+                if(res.hasOwnProperty('success') && res.success==true){
+            
+                     dispatch({type:LOGIN_SUCCESS,res});
+
+                }else if(res.hasOwnProperty('success') && res.success==false) {
+                    dispatch({type:LOGIN_ERROR,res});
+                }
+            },
+            error=>{
+                console.log(error);
+            }
+        )
+    } 
+
+}
+
+
+export const clearLoginAuthState = ()=>
+{
+    return (dispatch)=>
+    {
+        dispatch({type:CLEAR_LOGIN_STATE});
     }
 }
 

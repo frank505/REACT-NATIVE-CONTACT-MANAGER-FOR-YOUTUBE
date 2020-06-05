@@ -1,44 +1,218 @@
-import React from 'react'
-import { Content, Form, Item, Input, Label,Button,Text } from 'native-base';
+import React,{useState,useEffect} from 'react'
+import { Content, Form, Item, Input, Label,Button,Text,View } from 'native-base';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import {styles} from '../styles'
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useFocusEffect } from '@react-navigation/native';
+import {Formik} from 'formik'
+import { disableSubmitButton } from '../../../helpers/hooksFormInput';
+import { cleanUpData,
+  instantiateAbort,setBottomColor,ResponseToast,LoadingToast } from '../../../helpers/componentHelperFunc';
+import {useDispatch,useSelector} from 'react-redux';
+import { LoginAction, clearLoginAuthState } from '../../../store/actions/AuthAction';
+import AsyncStorage from '@react-native-community/async-storage'
 
 
 export default function LoginForm() {
-  
+
+  const EmailCheckRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
   const navigation = useNavigation();
+
+  const dispatch = useDispatch();
+
+  const abortEffect = instantiateAbort();
+
+  const [disable, setDisable] = useState(true)
+
+  const loginResponse = useSelector(state=>state.authReducer.loginState);
+
+  const [fields, setFields] = useState({
+   email:"",
+   password:""
+  });
 
     const goToRegisterPage = () =>
     {
     navigation.navigate('Register');
     }
 
-    const submitData = () =>
+       /**
+  * called once we loose focus of this screen react navigation 5 new hooks
+  */
+    useFocusEffect(
+      React.useCallback(() => {
+      
+        return () => dispatch(clearLoginAuthState())
+      }, [])
+     
+    );
+  
+
+    const validation = () =>
     {
-      navigation.navigate('Dashboard');
+        const errors = {};
+        errors.email =  !fields.email? 'Email Field is Required': '';
+        errors.email = !EmailCheckRegex.test(fields.email)?'Invalid email address':'';
+        errors.password = fields.password==""? 'Password Field is Required': '';
+    
+      
+        return errors;
     }
 
+    const disableButtonIfFieldsAreEmpty = (dataObject)=>
+    {
+      disableSubmitButton(dataObject,setDisable);
+    }
+
+    /*
+   * ensure button remains disable until all form fields are filled
+    */
+   useEffect(() => 
+   {
+     
+      disableButtonIfFieldsAreEmpty(fields)
+   
+     return function cleanup()
+     {
+       cleanUpData(abortEffect);
+     }
+
+    }, [fields]);
+
+
+    const submitData = () =>
+    {
+     dispatch(LoginAction(fields));
+    }
+     
+      /**
+    * disable button when we are submitting our form during the time interval we wait 
+    * for response to come to us from our react application
+    */
+   useEffect(() => 
+   {
+     disableButtonOnSubmit();
+
+     return function cleanup()
+     {
+       cleanUpData(abortEffect);
+     }
+
+   }
+   , [loginResponse])
+
+      
+  const disableButtonOnSubmit = () =>
+   {
+     if(loginResponse=="loading")
+     {
+       setDisable(true);
+     }else if(loginResponse!="" && loginResponse!="loading")
+     {
+        setDisable(false);
+     }
+   }
+  
+   useEffect(() => {
+    if(loginResponse!="" && loginResponse=="loading")
+    {
+      LoadingToast("top","please wait..","success");
+    }
+    else if(loginResponse!="" || loginResponse!=null || loginResponse!="loading")
+    {
+      if(loginResponse.success === true && loginResponse.token!="")
+      {
+        AsyncStorage.setItem('user','Bearer '+loginResponse.token);
+
+       navigation.navigate("Dashboard");
+       
+      }else if(loginResponse.success === false)
+      {
+          if(typeof loginResponse.message === "string")
+          {
+            ResponseToast("top","Close","danger",loginResponse.message,6000);
+            
+          }else if(typeof loginResponse.message === "object")
+          {
+            Object.keys(loginResponse.message).map((keys,index)=>{
+        
+              ResponseToast("top","Close","danger",loginResponse.message[keys][0],6000);
+            })
+          }
+      }
+    }
+
+    return () => {
+      cleanUpData(abortEffect)
+    }
+  }, [loginResponse])
 
     return (
     
         <Content style={styles.container}  >
-          <Form>
+          
+          <Formik  initialValues={fields}
+                    validate={validation}
+                    >
+
+                   {({
+                          errors,
+                          touched,
+                          handleBlur,
+                          handleChange,
+                          /* and other goodies */
+                      }) => (
+               <View>
            
 
-           <Item floatingLabel>
+           <Item floatingLabel 
+            style={styles.marginTopStyle}
+            ref={component=>_Email = component}
+            >
               <Label>Email</Label>
-              <Input />
+              <Input 
+              onChangeText={(email)=>{
+                setFields({...fields,email:email}),
+                setBottomColor(_Email,email,"email")
+              }}
+              onTouchStart={()=>setBottomColor(_Email,fields.email,"email")}
+              onBlur={handleBlur("email")}
+              onChange={handleChange("email")}
+              value={fields.email}
+              />
+              
             </Item>
+            <Label style={styles.labelError}>
+              {errors.email && touched.email && errors.email}
+            </Label>
 
-            <Item floatingLabel last>
-              <Label>Password</Label>
-              <Input />
+            <Item floatingLabel
+            style={null}
+            ref={component=>_Password = component}
+            >
+            <Label>Password</Label>
+              <Input
+            onChangeText={(password)=>{
+              setFields({...fields,password:password}),
+              setBottomColor(_Password,password,null)
+            }}
+            onTouchStart={()=>setBottomColor(_Password,fields.password,null)}
+              onBlur={handleBlur("password")}
+              onChange={handleChange("password")}
+              value={fields.password} 
+              secureTextEntry={true}
+              />
             </Item>
+            <Label style={styles.labelError}>
+              {errors.password && touched.password && errors.password}
+            </Label>
+            
            
             
-            <Button full iconLeft  style={styles.submitBtn} onPress={submitData}>
+            <Button full iconLeft  
+            style={styles.submitBtn}
+            disabled={disable}
+            onPress={submitData}>
             <Ionicons name="ios-contact" color="#fff" size={20} />
             <Text>Login</Text>
           </Button>
@@ -47,7 +221,10 @@ export default function LoginForm() {
             <Text>Click Here To Register</Text>
           </Button>
 
-          </Form>
+          </View>
+            )}
+            </Formik>
+
         </Content>   
 
 

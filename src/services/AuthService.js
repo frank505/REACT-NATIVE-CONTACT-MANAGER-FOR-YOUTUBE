@@ -1,4 +1,5 @@
 import HttpService from './HttpService';
+import AsyncStorage from '@react-native-community/async-storage';
 
 
 
@@ -13,7 +14,7 @@ export const RegisterService = (credentials) =>{
          });
 }
 
-export const LoginUser = (credentials) =>{
+export const LoginService = (credentials) =>{
     const http = new HttpService();
     let signUpUrl = "user/login";
     return http.postData(credentials,signUpUrl,"POST").then(data=>{
@@ -22,4 +23,14 @@ export const LoginUser = (credentials) =>{
     }).catch((error)=> {console.log(error)
    return error; 
     });
+}
+
+
+export const LogoutService =()=>
+{
+return new Promise(function(resolve)
+ {
+  AsyncStorage.removeItem('user');
+  resolve(true);
+  })
 }
