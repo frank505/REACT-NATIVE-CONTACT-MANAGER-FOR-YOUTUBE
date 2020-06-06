@@ -1,6 +1,6 @@
 import React,{useState,useEffect} from 'react'
 import { Content,View,Label,Text,Icon, Item, Input,Button,ActionSheet} from 'native-base'
-import { TouchableNativeFeedback,Image, Alert,SafeAreaView } from 'react-native'
+import { TouchableNativeFeedback,Image, Alert } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { styles } from '../styles'
 import ImagePicker from 'react-native-image-picker';
@@ -48,7 +48,7 @@ export default function CreateForm() {
     phonenumber:"",
    });
    
-
+    
    const [MobileErr, setMobileErr] = useState("")
 
   const [ProfileImage, setProfileImage] = useState("");
@@ -92,21 +92,21 @@ export default function CreateForm() {
     {
       setDisable(true);
       return;
-    }else
-    {
+    }else if(MobileErr=="")
+    { 
       disableSubmitButton(dataObject,setDisable);
-    }
+     }
   }
 
   
-
+ 
    /*
    * ensure button remains disable until all form fields are filled
     */
    useEffect(() => 
    {
-     
-      disableButtonIfFieldsAreEmpty(fields,MobileErr)
+   
+     disableButtonIfFieldsAreEmpty(fields,MobileErr)
    
      return function cleanup()
      {
@@ -136,8 +136,8 @@ export default function CreateForm() {
 
 
 
- const openFIleImage = () =>{
-
+ const openFIleImage = () =>
+ {
   try{
     const base64UriAttach = "data:image/jpeg;base64,";
   
@@ -184,7 +184,8 @@ export default function CreateForm() {
     if(isVerified==true && phoneNumber!="")
     {
       setMobileErr("");
-      _Phone.setNativeProps({ style: { borderBottomColor: 'green' } })
+      _Phone.setNativeProps({ style: { borderBottomColor: 'green' } });
+      return;
     }  
 };
 
@@ -251,7 +252,7 @@ export default function CreateForm() {
  */
  useEffect(() => 
  {
-   disableButtonOnSubmit();
+  disableButtonOnSubmit();
 
    return function cleanup()
    {
@@ -273,13 +274,26 @@ const disableButtonOnSubmit = () =>
    }
  }
 
+ const compilingAllFields = () =>
+ {
+   const dataCompiledFields =
+   {
+     firstname:fields.firstname,
+     lastname:fields.lastname,
+     email:fields.email,
+     phonenumber:fields.phonenumber,
+     profile_image:ProfileImage
+   };
+   return dataCompiledFields;
+ }
 
  const submitData = () =>
  {
    /**add a new profile_image property */
-   fields["profile_image"] = ProfileImage;
-   console.log(fields);
-  dispatch(CreateContactAction(fields));
+   const data =  compilingAllFields();
+
+  dispatch(CreateContactAction(data));
+  
  }
 
 
@@ -293,17 +307,36 @@ const disableButtonOnSubmit = () =>
     if(createResponse.success === true)
     {
       ResponseToast("top","Close","success",createResponse.message,6000);
-     
+      
+      // setFields({
+      //   firstname:"",
+      //   lastname:"",
+      //   email:"",
+      
+      // });
+      console.log(MobileErr);
+
+      console.log(fields);
+      
     }else if(createResponse.success === false)
     {
         if(typeof createResponse.message === "string")
         {
           ResponseToast("top","Close","danger",createResponse.message,6000);
+
+          console.log(MobileErr);
+
+          console.log(fields);
+
         }else if(typeof createResponse.message === "object")
         {
           Object.keys(createResponse.message).map((keys,index)=>{
       
             ResponseToast("top","Close","danger",createResponse.message[keys][0],6000);
+
+            console.log(MobileErr);
+
+            console.log(fields);
           })
         }
     }
@@ -317,7 +350,7 @@ const disableButtonOnSubmit = () =>
 
     return (
        <Content style={styles.container}>
-       
+      
        <Formik  initialValues={fields}
                     validate={validation}
                     >
@@ -359,15 +392,15 @@ const disableButtonOnSubmit = () =>
 
           <Item floatingLabel   
             style={styles.marginTopStyle}
-            ref={component => _firstName = component}
+            ref={component => _firstNameCreate = component}
             >
               <Label>Firstname</Label>
               <Input
               onChangeText={(firstname)=>{
                 setFields({...fields,firstname:firstname}),
-                setBottomColor(_firstName,firstname,null)
+                setBottomColor(_firstNameCreate,firstname,null)
               }}
-              onTouchStart={()=>setBottomColor(_firstName,fields.firstname,null)}
+              onTouchStart={()=>setBottomColor(_firstNameCreate,fields.firstname,null)}
               onBlur={handleBlur("firstname")}
               onChange={handleChange("firstname")}
               value={fields.firstname}
@@ -379,15 +412,15 @@ const disableButtonOnSubmit = () =>
 
             <Item floatingLabel
             style={null}
-            ref={component => _lastName = component}
+            ref={component => _lastNameCreate = component}
             >
               <Label>Lastname</Label>
               <Input 
              onChangeText={(lastname)=>{
               setFields({...fields,lastname:lastname}),
-              setBottomColor(_lastName,lastname,null)
+              setBottomColor(_lastNameCreate,lastname,null)
             }}
-            onTouchStart={()=>setBottomColor(_lastName,fields.lastname,null)}
+            onTouchStart={()=>setBottomColor(_lastNameCreate,fields.lastname,null)}
               onBlur={handleBlur("lastname")}
               onChange={handleChange("lastname")} 
               value={fields.lastname}/>
@@ -397,15 +430,15 @@ const disableButtonOnSubmit = () =>
 
             <Item floatingLabel 
             style={null}
-            ref={component=>_Email = component}
+            ref={component=>_EmailCreate = component}
             >
               <Label>Email</Label>
               <Input 
               onChangeText={(email)=>{
                 setFields({...fields,email:email}),
-                setBottomColor(_Email,email,"email")
+                setBottomColor(_EmailCreate,email,"email")
               }}
-              onTouchStart={()=>setBottomColor(_Email,fields.email,"email")}
+              onTouchStart={()=>setBottomColor(_EmailCreate,fields.email,"email")}
               onBlur={handleBlur("email")}
               onChange={handleChange("email")}
               value={fields.email}

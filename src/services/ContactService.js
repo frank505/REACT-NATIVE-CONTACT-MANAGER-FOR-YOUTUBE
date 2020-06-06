@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
   let tokenId = "user";
 
   const token = await AsyncStorage.getItem(tokenId);
+  console.log(token);
 /**
  * token field is required
  */  
@@ -22,18 +23,22 @@ return http.postData(credentials,Url,"POST",tokenId).then((data)=>{
      });
  }
 
-//load contacts for the first time
- export  const loadContactService = (creds) =>
- {
+//load contacts with pagination
+ export  const loadContactService = async (page) =>
+ {  
     const http = new HttpService();
   let tokenId="user";
-  let pager =20;
-  let  Url = "user/contact/get-all/"+pager+"?page="+1;
-  return http.getData( Url,tokenId).then((data)=>{
+  let pager =15;
+  const token = await AsyncStorage.getItem(tokenId);
+
+  let  Url = "user/contact/get-all/"+token+"/"+pager+"?page="+page;
+
+  return http.getData(Url,tokenId).then((data)=>{
     return data;
 }).catch((error)=> {console.log(error)
     return error; 
      });
+
  }
 
  export const loadSingleContactService = (id) =>

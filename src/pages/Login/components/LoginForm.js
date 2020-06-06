@@ -167,15 +167,15 @@ export default function LoginForm() {
 
            <Item floatingLabel 
             style={styles.marginTopStyle}
-            ref={component=>_Email = component}
+            ref={component=>_EmailLogin = component}
             >
               <Label>Email</Label>
               <Input 
               onChangeText={(email)=>{
                 setFields({...fields,email:email}),
-                setBottomColor(_Email,email,"email")
+                setBottomColor(_EmailLogin,email,"email")
               }}
-              onTouchStart={()=>setBottomColor(_Email,fields.email,"email")}
+              onTouchStart={()=>setBottomColor(_EmailLogin,fields.email,"email")}
               onBlur={handleBlur("email")}
               onChange={handleChange("email")}
               value={fields.email}
@@ -188,15 +188,15 @@ export default function LoginForm() {
 
             <Item floatingLabel
             style={null}
-            ref={component=>_Password = component}
+            ref={component=>_PasswordLogin = component}
             >
             <Label>Password</Label>
               <Input
             onChangeText={(password)=>{
               setFields({...fields,password:password}),
-              setBottomColor(_Password,password,null)
+              setBottomColor(_PasswordLogin,password,null)
             }}
-            onTouchStart={()=>setBottomColor(_Password,fields.password,null)}
+            onTouchStart={()=>setBottomColor(_PasswordLogin,fields.password,null)}
               onBlur={handleBlur("password")}
               onChange={handleChange("password")}
               value={fields.password} 

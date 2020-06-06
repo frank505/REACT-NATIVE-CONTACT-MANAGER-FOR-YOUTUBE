@@ -1,117 +1,84 @@
-import React,{useState} from 'react'
+import React,{useState,useEffect} from 'react'
 import { List, 
     ListItem, Left, Body, Right, 
-    Thumbnail, Text as NativeBaseText,ActionSheet  } from 'native-base';
+    Thumbnail, Text as NativeBaseText,ActionSheet,View  } from 'native-base';
 import {
     FlatList,
     ActivityIndicator,
     Alert
   } from 'react-native';
  import {useNavigation} from '@react-navigation/native';
-  
+import { useSelector,useDispatch } from 'react-redux';
+import ContentLoader, { Rect, Circle, BulletList,List as ListLoader } from 'react-content-loader/native'
+import { GetContactActions } from '../../../../store/actions/ContactsAction';
 
-  const BUTTONS = [
-    { text: "Edit Contact", icon: "image", iconColor: "#2c8ef4" },
-    { text: "Delete Contact", icon: "trash", iconColor: "#f42ced" },
-    { text: "View Contact", icon: "md-person", iconColor: "#f42ced" },
-    { text: "Cancel", icon: "close", iconColor: "#25de5b" }
-  ];
-  
-   const CANCEL_INDEX = 3;
-
-  const item = [
-    {
-      id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-      title: 'First Item',
-    },
-    {
-      id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-      title: 'Second Item',
-    },
-    {
-      id: '58694a0f-3da1-471f-bd96-145571e29d7d2',
-      title: 'Fourth Item',
-    },
-    {
-        id: 'bd7acbea-sc1b1-46c2-aed5-3ad53abb28ba',
-        title: 'Fifth Item',
-      },
-      {
-        id: '3ac68afc3-c605-48d3-a4f8-fbd91aa97f63',
-        title: 'Sixth Item',
-      },
-      {
-        id: '58694a0sf-3da1-471f-bd96-145571e29d72',
-        title: 'Seventh Item',
-      },
-      {
-        id: '58694a0fs-3da1-471f-bd96-145571e29d7d2',
-        title: 'Eight Item',
-      },
-      {
-          id: 'bd7acbeas-dsc1b1-46c2-aed5-3ad53abb28ba',
-          title: 'Ninth Item',
-        },
-        {
-          id: '3ac68afc3-sdc605s-48d3-a4f8-fbd91aa97f63',
-          title: 'Tenth Item',
-        },
-        {
-          id: '58694a0sf-a3da1-471f-bd96-145571e29d72',
-          title: 'Eleventh Item',
-        },
-        {
-            id: '58694a0sfss-x3da1-471f-bd96-145571e29d72',
-            title: 'Twelfth Item',
-          },
-          {
-            id: '58694a0sfd-a3da1-471f-bd96-145571e29d72',
-            title: 'Eleventh Item',
-          },
-          {
-              id: '58694a0sfs-x3da1-471f-bd96-145571e29d72',
-              title: 'Twelfth Item',
-            },
-            {
-                id: '58694a0sfs-a3da1-471f-bd96-145571e29d72',
-                title: 'Eleventh Item',
-              },
-              {
-                  id: '58694a0sfws-x3da1-471f-bd96-145571e29d72',
-                  title: 'Twelfth Item',
-                },
-  {
-            id: '58694a0sfds-a3da1-471f-bd96-145571e29d72',
-            title: 'Eleventh Item',
-          },
-          {
-              id: '58694a0sfss-x3da1-471f-bd96-145571e29d72',
-              title: 'Twelfth Item',
-            },
-            {
-                id: '58694a0sdfs-a3da1-471f-bd96-145571e29d72',
-                title: 'Eleventh Item',
-              },
-              {
-                  id: '58694aw0sfws-x3da1-471f-bd96-145571e29d72',
-                  title: 'Twelfth Item',
-                },
-  ];
 
 
 
 export default function ItemList() {
 
+  const BUTTONS = [
+    { text: "Edit Contact", icon: "image", iconColor: "#2c8ef4" },
+    { text: "Delete Contact", icon: "trash", iconColor: "#f42ced" },
+    { text: "Contact Me", icon: "md-person", iconColor: "#f42ced" },
+    { text: "Cancel", icon: "close", iconColor: "#25de5b" }
+  ];
+  
+   const CANCEL_INDEX = 3;
+
     const [refreshBool, setrefreshBool] = useState(false);
    
+    const getResponse = useSelector(state=>state.contactReducer.getContactState);
+
+    const [responseData, setResponseData] = useState([]);
+
+    const [initPager, setinitPager] = useState("1");
+   
+    const dispatch = useDispatch();
+
     const navigation = useNavigation();
+
+    useEffect(() => {
+      
+      dispatch(GetContactActions(initPager));
+
+      return () => {
+      
+      }
+    }, []);
+
+    useEffect(() => {
+      
+      if(getResponse!="" && getResponse!=="loading")
+      {
+        if(getResponse.hasOwnProperty('data') && getResponse.data.hasOwnProperty("data"))
+        {
+          let currentPage = getResponse.data.current_page;
+          let nextPage = currentPage + 1;
+          setinitPager(nextPage);
+          setResponseData(responseData => [...responseData, ...getResponse.data.data]);
+          setrefreshBool(false);
+        }  
+        
+      }
+      return () => {
+        
+      }
+    }, [getResponse])
 
     const fetchMore = () =>
      {
-             console.log('fetching more'); 
+             if(initPager==1)
+             {
+
+             } else
+             {
+               setrefreshBool(true);
+             dispatch(GetContactActions(initPager));
+             }
      }
  
-   const  loadActionSheet = () =>
+   const  loadActionSheet = (contactId) =>
 {
 return ActionSheet.show(
 {
@@ -144,9 +111,11 @@ if(BUTTONS[buttonIndex].text=="Edit Contact")
         ]
     )
 
-}else if(BUTTONS[buttonIndex].text=="View Contact")
+}else if(BUTTONS[buttonIndex].text=="Contact Me")
 {
-   navigation.navigate("ViewSingleContact");
+   navigation.navigate("ViewSingleContact",{
+     contactId:contactId
+   });
 }
 
 }catch(ex)
@@ -176,23 +145,58 @@ ActionSheet.hide();
    
    const handleRefresh = () =>
    {
-       console.log('refreshing content');
+     setinitPager("1");
+     setResponseData("");
+       dispatch(GetContactActions("1"));
    }
+
+
+   const loadAnimation = () =>
+   {
+     return (
+      <View style={{width:'90%',marginLeft:"5%",marginRight:'5%'}}>
+      <ContentLoader 
+      speed={1}
+      >
+<Rect x="0" y=" 30"  width="100%" height="100" />
+<Rect x="0" y="60"  width="100%" height="100" />
+<Rect x="0" y="90"  width="100%" height="100" />
+<Rect x="0" y="120"  width="100%" height="100" />
+<Rect x="0" y="150"  width="100%" height="100" />
+<Rect x="0" y="180"  width="100%" height="100" />
+<Rect x="0" y="210"  width="100%" height="100" />
+<Rect x="0" y="240"  width="100%" height="100" />
+<Rect x="0" y="270"  width="100%" height="100" />
+<Rect x="0" y="300"  width="100%" height="100" />
+<Rect x="0" y="330"  width="100%" height="100" />
+<Rect x="0" y="360"  width="100%" height="100" />
+<Rect x="0" y="390"  width="100%" height="100" />
+<Rect x="0" y="420"  width="100%" height="100" />
+<Rect x="0" y="450"  width="100%" height="100" />
+<Rect x="0" y="480"  width="100%" height="100" />
+<Rect x="0" y="510"  width="100%" height="100" />
+      </ContentLoader>
+   </View>
+     );
+   }
+
  
    const renderItem = (item ,index) =>
    {
+    
        return(
          <List >
-         <ListItem avatar onPress={loadActionSheet}>
+         <ListItem avatar onPress={(e)=>loadActionSheet(item.id)}>
            <Left>
              <Thumbnail source={require( "../../../../assets/images/default-avatar.png") } />
            </Left>
            <Body>
- <NativeBaseText>{item.title}</NativeBaseText>
-             <NativeBaseText note>Doing what you like will always keep you happy . .</NativeBaseText>
+
+ <NativeBaseText>{item.firstname+" "+item.lastname}</NativeBaseText>
+       <NativeBaseText note>{item.email+","+item.phonenumber}</NativeBaseText>
            </Body>
            <Right>
-             <NativeBaseText note>3:43 pm</NativeBaseText>
+       <NativeBaseText note>{item.created_at}</NativeBaseText>
            </Right>
          </ListItem>
        </List>
@@ -211,16 +215,26 @@ ActionSheet.hide();
  
 
     return (
+      <>
+      {
+        ( (responseData=="" || responseData=="loading") && initPager==1)?
+          loadAnimation()
+        :
+        responseData==null ?
+        loadAnimation()
+        :
         <FlatList
-        data={item}
+        data={responseData}
         renderItem={({ item, index }) => renderItem(item, index)}
-        keyExtractor={(item, index) => item.id.toString()}
+        keyExtractor={(item, index) => index.toString()}
         onEndReached={fetchMore}
-        onEndReachedThreshold={0.1}
+         onEndReachedThreshold={0.1}
         onRefresh={handleRefresh}
         ListFooterComponent={renderFooter}
-        refreshing={refreshBool}
-        initialNumToRender={10}
+         refreshing={refreshBool}
       />
+      }
+      
+      </>
     )
-}
+}  
