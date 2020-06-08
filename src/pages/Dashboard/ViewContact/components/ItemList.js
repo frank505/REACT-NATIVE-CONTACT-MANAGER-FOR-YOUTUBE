@@ -10,8 +10,9 @@ import {
  import {useNavigation} from '@react-navigation/native';
 import { useSelector,useDispatch } from 'react-redux';
 import ContentLoader, { Rect, Circle, BulletList,List as ListLoader } from 'react-content-loader/native'
-import { GetContactActions } from '../../../../store/actions/ContactsAction';
-
+import { GetContactActions, DeleteContactAction } from '../../../../store/actions/ContactsAction';
+import Spinner from 'react-native-loading-spinner-overlay';
+import {styles} from '../styles'
 
 
 
@@ -23,20 +24,28 @@ export default function ItemList() {
     { text: "Contact Me", icon: "md-person", iconColor: "#f42ced" },
     { text: "Cancel", icon: "close", iconColor: "#25de5b" }
   ];
-  
+    
    const CANCEL_INDEX = 3;
 
     const [refreshBool, setrefreshBool] = useState(false);
    
     const getResponse = useSelector(state=>state.contactReducer.getContactState);
 
+    const deleteResponse = useSelector(state=>state.contactReducer.deleteContactResponse);
+
     const [responseData, setResponseData] = useState([]);
 
     const [initPager, setinitPager] = useState("1");
+
+    const [defaultURI, setDefaultURI] = useState("");
+
+    const [totalItems, setTotalItems] = useState("");
+
+    const [spinnerVisiblity, setSpinnerVisibility] = useState(false);
    
     const dispatch = useDispatch();
 
-    const navigation = useNavigation();
+    const navigation = useNavigation();   
 
     useEffect(() => {
       
@@ -56,8 +65,10 @@ export default function ItemList() {
           let currentPage = getResponse.data.current_page;
           let nextPage = currentPage + 1;
           setinitPager(nextPage);
+          setDefaultURI(getResponse.file_directory);
           setResponseData(responseData => [...responseData, ...getResponse.data.data]);
           setrefreshBool(false);
+          setTotalItems(getResponse.data.total);
         }  
         
       }
@@ -68,7 +79,7 @@ export default function ItemList() {
 
     const fetchMore = () =>
      {
-             if(initPager==1)
+             if(initPager==1 || totalItems < 16)
              {
 
              } else
@@ -90,7 +101,9 @@ buttonIndex => {
 try{
 if(BUTTONS[buttonIndex].text=="Edit Contact")
 {
-  navigation.navigate("EditContact");
+  navigation.navigate("EditContact",{
+    contactId:contactId
+  });
   
 }else if(BUTTONS[buttonIndex].text=="Delete Contact")
 {
@@ -105,7 +118,7 @@ if(BUTTONS[buttonIndex].text=="Edit Contact")
               style:"cancel"
            },
            {
-               text:"OK",onPress:()=>deleteItem()
+               text:"OK",onPress:()=>deleteItem(contactId)
            },
     
         ]
@@ -129,22 +142,50 @@ ActionSheet.hide();
 }
 
 
-  const deleteItem = () =>
-  {
-    Alert.alert(
-        "Item Deleted Successfully",
-        "item delete action was successfull",
+  const deleteItem = (contactId) =>
+  { 
+     setSpinnerVisibility(true);
+    dispatch(DeleteContactAction(contactId));
+
+  }
+
+  
+
+   
+   useEffect(() => {
+     if(deleteResponse!="" && deleteResponse!="loading")
+     { 
+       console.log(deleteResponse);
+
+       const deleteMessage = deleteResponse.message;
+       setSpinnerVisibility(false);
+
+       let  dataToDelete = responseData;
+       let filteredItems = dataToDelete.filter(items=>items.id!=deleteResponse.id);
+          setResponseData(filteredItems);
+
+       Alert.alert(
+        ""+deleteMessage+"",
+        ""+deleteMessage+"",
         [
            {
-               text:"OK",onPress:()=>console.log('deleted')
+               text:"OK"
            },
     
         ]
     )
-  }
-   
+     }
+     return () => {
+       
+     };
+   }, [deleteResponse]);
+
+
+ 
+
    const handleRefresh = () =>
    {
+
      setinitPager("1");
      setResponseData("");
        dispatch(GetContactActions("1"));
@@ -183,17 +224,23 @@ ActionSheet.hide();
  
    const renderItem = (item ,index) =>
    {
-    
+     
        return(
          <List >
          <ListItem avatar onPress={(e)=>loadActionSheet(item.id)}>
            <Left>
-             <Thumbnail source={require( "../../../../assets/images/default-avatar.png") } />
+              {
+              item.image_file=="" || item.image_file==null || item.image_file=="default-avatar.png"?
+              <Thumbnail source={require( "../../../../assets/images/default-avatar.png") } />
+              :
+              <Thumbnail source={{uri:defaultURI+"/"+item.image_file}} />
+              }
+             
            </Left>
            <Body>
 
  <NativeBaseText>{item.firstname+" "+item.lastname}</NativeBaseText>
-       <NativeBaseText note>{item.email+","+item.phonenumber}</NativeBaseText>
+       <NativeBaseText note>{item.email+","+item.country_code+item.phonenumber}</NativeBaseText>
            </Body>
            <Right>
        <NativeBaseText note>{item.created_at}</NativeBaseText>
@@ -216,6 +263,14 @@ ActionSheet.hide();
 
     return (
       <>
+      <Spinner
+  //visibility of Overlay Loading Spinner
+  visible={spinnerVisiblity}
+  //Text with the Spinner 
+  textContent={'Removing Contact Please Wait..'}
+  //Text style of the Spinner Text
+   textStyle={styles.spinnerTextStyle}
+     />
       {
         ( (responseData=="" || responseData=="loading") && initPager==1)?
           loadAnimation()
@@ -238,3 +293,4 @@ ActionSheet.hide();
       </>
     )
 }  
+   

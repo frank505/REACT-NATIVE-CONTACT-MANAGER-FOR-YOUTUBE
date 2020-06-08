@@ -27,7 +27,13 @@ export const styles = StyleSheet.create({
    },
    textRepImage:{
        color:'red'
-   }
- });
+   },
+   marginTopStyle:{
+    marginTop:'2%'
+  },
+  labelError:{
+    color:'red',fontSize:14
+  }
+ });     
 
  

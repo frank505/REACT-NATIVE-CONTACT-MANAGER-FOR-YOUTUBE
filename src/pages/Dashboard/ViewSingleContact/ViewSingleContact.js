@@ -7,6 +7,7 @@ import ContactDetails from './components/ContactDetails'
 
  export default function ViewSingleContact() 
   {
+    
      return (
          <Container>
            <Header/>

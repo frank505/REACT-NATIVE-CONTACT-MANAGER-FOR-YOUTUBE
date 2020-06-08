@@ -53,3 +53,49 @@ return http.postData(credentials,Url,"POST",tokenId).then((data)=>{
     return error; 
      });
  }
+
+
+ export const loadSearchContactService = async(searchData,page) =>
+ {
+  const http = new HttpService();
+  let tokenId = "user";
+  let pager =15;
+   let Url = "user/contact/search/"+searchData+"/"+pager+"?page="+page;
+   console.log(Url);
+   return http.getData( Url,tokenId).then((data)=>
+   {
+     return data;
+ }).catch((error)=> {console.log(error)
+   return error; 
+    });
+}
+ 
+
+export const editContactService = (credentials,id)=>
+{
+  const http = new HttpService();
+  let Url = "user/contact/update/"+id;
+  let tokenId = "user";
+  
+return http.postData(credentials,Url,"POST",tokenId).then((data)=>{
+    return data;
+}).catch((error)=> {console.log(error)
+    return error; 
+     });
+}
+
+
+export const deleteContactService = (id) =>
+{
+  const http = new HttpService();
+  let Url = "user/contact/delete/"+id;
+  let tokenId = "user";
+  let data = {};
+  
+return http.postData(data,Url,"POST",tokenId).then((data)=>{
+    return data;
+}).catch((error)=> {console.log(error)
+    return error; 
+     });
+}
+

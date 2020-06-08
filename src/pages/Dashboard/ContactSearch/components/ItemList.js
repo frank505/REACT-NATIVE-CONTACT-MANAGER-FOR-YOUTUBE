@@ -1,117 +1,156 @@
-import React,{useState} from 'react'
+import React,{useState,useEffect} from 'react'
 import { List, 
     ListItem, Left, Body, Right, 
-    Thumbnail, Text as NativeBaseText,ActionSheet  } from 'native-base';
+    Thumbnail, Text as NativeBaseText,ActionSheet,View  } from 'native-base';
 import {
     FlatList,
-    ActivityIndicator,
+    ActivityIndicator, 
     Alert
   } from 'react-native';
- import {useNavigation} from '@react-navigation/native';
-  
+ import {useNavigation,useFocusEffect} from '@react-navigation/native';
+import { useDispatch,useSelector } from 'react-redux';
+import ContentLoader, { Rect, Circle, BulletList,List as ListLoader } from 'react-content-loader/native'
+import { GetSearchContactAction, clearSearchContactState,DeleteContactAction } from '../../../../store/actions/ContactsAction';
+import Spinner from 'react-native-loading-spinner-overlay';
+import {styles} from '../styles'
+ 
+export default function ItemList(props) {
 
   const BUTTONS = [
     { text: "Edit Contact", icon: "image", iconColor: "#2c8ef4" },
     { text: "Delete Contact", icon: "trash", iconColor: "#f42ced" },
-    { text: "View Contact", icon: "md-person", iconColor: "#f42ced" },
+    { text: "Contact Me", icon: "md-person", iconColor: "#f42ced" },
     { text: "Cancel", icon: "close", iconColor: "#25de5b" }
   ];
   
+  
    const CANCEL_INDEX = 3;
+ 
+    const navigation = useNavigation();
 
-  const item = [
-    {
-      id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-      title: 'First Item',
-    },
-    {
-      id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-      title: 'Second Item',
-    },
-    {
-      id: '58694a0f-3da1-471f-bd96-145571e29d7d2',
-      title: 'Fourth Item',
-    },
-    {
-        id: 'bd7acbea-sc1b1-46c2-aed5-3ad53abb28ba',
-        title: 'Fifth Item',
-      },
-      {
-        id: '3ac68afc3-c605-48d3-a4f8-fbd91aa97f63',
-        title: 'Sixth Item',
-      },
-      {
-        id: '58694a0sf-3da1-471f-bd96-145571e29d72',
-        title: 'Seventh Item',
-      },
-      {
-        id: '58694a0fs-3da1-471f-bd96-145571e29d7d2',
-        title: 'Eight Item',
-      },
-      {
-          id: 'bd7acbeas-dsc1b1-46c2-aed5-3ad53abb28ba',
-          title: 'Ninth Item',
-        },
-        {
-          id: '3ac68afc3-sdc605s-48d3-a4f8-fbd91aa97f63',
-          title: 'Tenth Item',
-        },
-        {
-          id: '58694a0sf-a3da1-471f-bd96-145571e29d72',
-          title: 'Eleventh Item',
-        },
-        {
-            id: '58694a0sfss-x3da1-471f-bd96-145571e29d72',
-            title: 'Twelfth Item',
-          },
-          {
-            id: '58694a0sfd-a3da1-471f-bd96-145571e29d72',
-            title: 'Eleventh Item',
-          },
-          {
-              id: '58694a0sfs-x3da1-471f-bd96-145571e29d72',
-              title: 'Twelfth Item',
-            },
-            {
-                id: '58694a0sfs-a3da1-471f-bd96-145571e29d72',
-                title: 'Eleventh Item',
-              },
-              {
-                  id: '58694a0sfws-x3da1-471f-bd96-145571e29d72',
-                  title: 'Twelfth Item',
-                },
-  {
-            id: '58694a0sfds-a3da1-471f-bd96-145571e29d72',
-            title: 'Eleventh Item',
-          },
-          {
-              id: '58694a0sfss-x3da1-471f-bd96-145571e29d72',
-              title: 'Twelfth Item',
-            },
-            {
-                id: '58694a0sdfs-a3da1-471f-bd96-145571e29d72',
-                title: 'Eleventh Item',
-              },
-              {
-                  id: '58694aw0sfws-x3da1-471f-bd96-145571e29d72',
-                  title: 'Twelfth Item',
-                },
-  ];
+    const [initPager, setinitPager] = useState("1");
 
+    const [defaultURI, setDefaultURI] = useState("");
 
-
-export default function ItemList() {
+    const dispatch = useDispatch();
 
     const [refreshBool, setrefreshBool] = useState(false);
    
-    const navigation = useNavigation();
+    const searchResponse = useSelector(state=>state.contactReducer.searchContactState);
+
+    const deleteResponse = useSelector(state=>state.contactReducer.deleteContactResponse);
+
+    const [spinnerVisiblity, setSpinnerVisibility] = useState(false);
+
+    const [responseData, setResponseData] = useState([]);
+
+    const [totalItems, setTotalItems] = useState("");
+
+ 
+    useEffect(() => {
+     if(props.props !="")
+     {
+       console.log(props.props);
+      setinitPager("1"); 
+      setResponseData("");
+      dispatch(GetSearchContactAction(props.props,"1"));
+     }
+      
+
+      return () => {
+        
+      };
+    }, [props.props]);
+
+    
+         /**
+  * called once we loose focus of this screen react navigation 5 new hooks
+  */ 
+   useFocusEffect(
+  React.useCallback(() => {
+  
+    return () => {
+      dispatch(clearSearchContactState());
+    }
+  }, [])
+ 
+  );
+
+    useEffect(() => {
+      
+      if(searchResponse!="" && searchResponse!=="loading")
+      {
+        if(searchResponse.hasOwnProperty('data') && searchResponse.data.hasOwnProperty("data"))
+        {
+          let currentPage = searchResponse.data.current_page;
+          let nextPage = currentPage + 1;
+          setinitPager(nextPage);
+          setDefaultURI(searchResponse.file_directory);
+          setResponseData(responseData => [...responseData, ...searchResponse.data.data]);
+          setrefreshBool(false);
+          setTotalItems(searchResponse.data.total);
+        }  
+        
+      }
+      return () => {
+        
+      }
+    }, [searchResponse])
+
 
     const fetchMore = () =>
      {
-             console.log('fetching more'); 
+      if(initPager==1 || totalItems < 16)
+      {
+
+      } else
+      {
+        setrefreshBool(true);
+      dispatch(GetSearchContactAction(props.props,initPager));
+      }
+     }
+
+     const handleRefresh = () =>
+     {
+       if(props.props=="")
+       {
+         return;
+       }
+       setinitPager("1");
+       setResponseData("");
+         dispatch(GetSearchContactAction(props.props,"1"));
+     }
+
+     const loadAnimation = () =>
+     {
+       return (
+        <View style={{width:'90%',marginLeft:"5%",marginRight:'5%'}}>
+        <ContentLoader 
+        speed={1}
+        >
+  <Rect x="0" y=" 30"  width="100%" height="100" />
+  <Rect x="0" y="60"  width="100%" height="100" />
+  <Rect x="0" y="90"  width="100%" height="100" />
+  <Rect x="0" y="120"  width="100%" height="100" />
+  <Rect x="0" y="150"  width="100%" height="100" />
+  <Rect x="0" y="180"  width="100%" height="100" />
+  <Rect x="0" y="210"  width="100%" height="100" />
+  <Rect x="0" y="240"  width="100%" height="100" />
+  <Rect x="0" y="270"  width="100%" height="100" />
+  <Rect x="0" y="300"  width="100%" height="100" />
+  <Rect x="0" y="330"  width="100%" height="100" />
+  <Rect x="0" y="360"  width="100%" height="100" />
+  <Rect x="0" y="390"  width="100%" height="100" />
+  <Rect x="0" y="420"  width="100%" height="100" />
+  <Rect x="0" y="450"  width="100%" height="100" />
+  <Rect x="0" y="480"  width="100%" height="100" />
+  <Rect x="0" y="510"  width="100%" height="100" />
+        </ContentLoader>
+     </View>
+       );
      }
  
-   const  loadActionSheet = () =>
+   const  loadActionSheet = (contactId) =>
 {
 return ActionSheet.show(
 {
@@ -123,7 +162,9 @@ buttonIndex => {
 try{
 if(BUTTONS[buttonIndex].text=="Edit Contact")
 {
-  navigation.navigate("EditContact");
+  navigation.navigate("EditContact",{
+      contactId:contactId
+     });
   
 }else if(BUTTONS[buttonIndex].text=="Delete Contact")
 {
@@ -138,15 +179,18 @@ if(BUTTONS[buttonIndex].text=="Edit Contact")
               style:"cancel"
            },
            {
-               text:"OK",onPress:()=>deleteItem()
+               text:"OK",onPress:()=>deleteItem(contactId)
            },
     
         ]
     )
 
-}else if(BUTTONS[buttonIndex].text=="View Contact")
+}else if(BUTTONS[buttonIndex].text=="Contact Me")
 {
-   navigation.navigate("ViewSingleContact");
+   navigation.navigate("ViewSingleContact",
+   {
+    contactId:contactId
+   });
 }
 
 }catch(ex)
@@ -160,67 +204,117 @@ ActionSheet.hide();
 }
 
 
-  const deleteItem = () =>
-  {
-    Alert.alert(
-        "Item Deleted Successfully",
-        "item delete action was successfull",
-        [
-           {
-               text:"OK",onPress:()=>console.log('deleted')
-           },
-    
-        ]
-    )
-  }
+const deleteItem = (contactId) =>
+{ 
+   setSpinnerVisibility(true);
+  dispatch(DeleteContactAction(contactId));
+
+}
+
+
+
+ 
+ useEffect(() => {
+   if(deleteResponse!="" && deleteResponse!="loading")
+   { 
+     console.log(deleteResponse);
+
+     const deleteMessage = deleteResponse.message;
+     setSpinnerVisibility(false);
+
+     let  dataToDelete = responseData;
+     let filteredItems = dataToDelete.filter(items=>items.id!=deleteResponse.id);
+        setResponseData(filteredItems);
+
+     Alert.alert(
+      ""+deleteMessage+"",
+      ""+deleteMessage+"",
+      [
+         {
+             text:"OK"
+         },
+  
+      ]
+  )
+   }
+   return () => {
+     
+   };
+ }, [deleteResponse]);
+
+
+  
    
-   const handleRefresh = () =>
-   {
-       console.log('refreshing content');
-   }
+   
  
-   const renderItem = (item ,index) =>
-   {
-       return(
-         <List >
-         <ListItem avatar onPress={loadActionSheet}>
-           <Left>
+  const renderItem = (item ,index) =>
+  {
+    
+      return(
+        <List >
+        <ListItem avatar onPress={(e)=>loadActionSheet(item.id)}>
+          <Left>
+             {
+             item.image_file=="" || item.image_file==null || item.image_file=="default-avatar.png"?
              <Thumbnail source={require( "../../../../assets/images/default-avatar.png") } />
-           </Left>
-           <Body>
- <NativeBaseText>{item.title}</NativeBaseText>
-             <NativeBaseText note>Doing what you like will always keep you happy . .</NativeBaseText>
-           </Body>
-           <Right>
-             <NativeBaseText note>3:43 pm</NativeBaseText>
-           </Right>
-         </ListItem>
-       </List>
-       );
+             :
+             <Thumbnail source={{uri:defaultURI+"/"+item.image_file}} />
+             }
+            
+          </Left>
+          <Body>
+
+<NativeBaseText>{item.firstname+" "+item.lastname}</NativeBaseText>
+      <NativeBaseText note>{item.email+","+item.country_code+item.phonenumber}</NativeBaseText>
+          </Body>
+          <Right>
+      <NativeBaseText note>{item.created_at}</NativeBaseText>
+          </Right>
+        </ListItem>
+      </List>
+      );
+     
+  }
+
+  const renderFooter = () =>
+  {
+       if(refreshBool==false){
+           return null;
+       }
+        return <ActivityIndicator size="large" />;
       
-   }
- 
-   const renderFooter = () =>
-   {
-        if(refreshBool==false){
-            return null;
-        }
-         return <ActivityIndicator size="large" />;
-       
-   }
+  }
  
 
     return (
+      <>
+      <Spinner
+  //visibility of Overlay Loading Spinner
+  visible={spinnerVisiblity}
+  //Text with the Spinner 
+  textContent={'Removing Contact Please Wait..'}
+  //Text style of the Spinner Text
+   textStyle={styles.spinnerTextStyle}
+     />
+      {
+        ( (responseData=="" || responseData=="loading") && initPager==1 && props.props!='')?
+          loadAnimation()
+        :
+        responseData==null ?
+        loadAnimation()
+        :
         <FlatList
-        data={item}
+        data={responseData}
         renderItem={({ item, index }) => renderItem(item, index)}
-        keyExtractor={(item, index) => item.id.toString()}
+        keyExtractor={(item, index) => index.toString()}
         onEndReached={fetchMore}
-        onEndReachedThreshold={0.1}
+         onEndReachedThreshold={0.1}
         onRefresh={handleRefresh}
         ListFooterComponent={renderFooter}
-        refreshing={refreshBool}
-        initialNumToRender={10}
+         refreshing={refreshBool}
       />
+      }
+      
+      </>
     )
 }

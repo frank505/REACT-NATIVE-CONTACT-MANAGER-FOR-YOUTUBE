@@ -27,7 +27,7 @@ export default function Header() {
           
             </Left>
           <Body>
-            <Title>Ifeanyi Ubah Chimaobi</Title>
+            <Title>Contact Me</Title>
           </Body>
           <Right>
             <Options/>

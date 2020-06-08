@@ -32,6 +32,7 @@ export default function CreateForm() {
 
 
   
+
    const ImageOptions = {
     title: 'Select Image',
     customButtons: [{ name: 'user images', title: 'Choose An Image' }],
@@ -168,11 +169,11 @@ export default function CreateForm() {
  {
   console.log(dialCode, unmaskedPhoneNumber, phoneNumber, isVerified);
 
-     setFields({...fields,phonenumber:dialCode+unmaskedPhoneNumber});
+     setFields({...fields,phonenumber:unmaskedPhoneNumber});
     if(phoneNumber=="")
    {
     setMobileErr("Phone Number Field is Required");
-    _Phone.setNativeProps({ style: { borderBottomColor: 'red' } })
+    _Phone.setNativeProps({ style: { borderBottomColor: 'red' } });
     return;
    }   
    if(isVerified==false)
@@ -282,7 +283,8 @@ const disableButtonOnSubmit = () =>
      lastname:fields.lastname,
      email:fields.email,
      phonenumber:fields.phonenumber,
-     profile_image:ProfileImage
+     profile_image:ProfileImage,
+     country_code:_IntlPhoneInputCreate.state.dialCode
    };
    return dataCompiledFields;
  }
@@ -308,12 +310,6 @@ const disableButtonOnSubmit = () =>
     {
       ResponseToast("top","Close","success",createResponse.message,6000);
       
-      // setFields({
-      //   firstname:"",
-      //   lastname:"",
-      //   email:"",
-      
-      // });
       console.log(MobileErr);
 
       console.log(fields);
@@ -347,6 +343,13 @@ const disableButtonOnSubmit = () =>
   }
 }, [createResponse])
 
+
+const changeCountry =(phoneNumber) =>
+{
+ setFields({...fields,phonenumber:""});
+ _Phone.setNativeProps({ style: { borderBottomColor: 'red' } });
+ 
+}
 
     return (
        <Content style={styles.container}>
@@ -454,15 +457,16 @@ const disableButtonOnSubmit = () =>
             onTouchEnd={displayPhoneErrorTextMessagOnceViewIsClicked}
             >
            <Item style={null}
-          
             ref={component=>_Phone = component} >
             
         <IntlPhoneInput
+        ref={component=>_IntlPhoneInputCreate = component}
         placeholder="Phone Number"
         onChangeText={onChangeNumber} 
         phoneInputStyle={{fontSize:17,color:'black'}}
         value={fields.phonenumber}
         defaultCountry="NG" 
+        countryCodeChange={changeCountry}
         />
       </Item>
       </View>
